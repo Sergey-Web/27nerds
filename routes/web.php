@@ -15,6 +15,9 @@
 
 $router->get('leagues', [
     'middleware' => 'auth',
-    'uses' => 'LeaguesController@index'
+    'uses' => 'LeaguesController@index',
 ]);
-$router->get('leagues/{leagueId}', 'LeaguesController@show');
+$router->get('leagues/{leagueId}', [
+    'middleware' => 'auth',
+    'uses' => 'LeaguesController@show',
+);
