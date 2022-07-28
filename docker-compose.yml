@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+    nginx:
+        container_name: nerds-nginx
+        build:
+            context: .docker/nginx
+            dockerfile: Dockerfile
+        ports:
+            - "8080:80"
+        volumes:
+            - ./:/var/www/nerds
+        depends_on:
+            - php-fpm
+
+    php-fpm:
+        container_name: nerds-php-fpm
+        build:
+            context: .docker/php-fpm
+            dockerfile: Dockerfile
+        environment:
+            DB_PORT: 5432
+            DB_HOST: postgres
+            HISTFILE: '/home/www-data/bash-history/.bash_history'
+        volumes:
+            - ./:/var/www/nerds
+            - nerds-bash-history:/home/www-data/bash-history/:rw
+        depends_on:
+            - postgres
+
+    postgres:
+        container_name: nerds-postgres
+        image: postgres:14.4
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: nerds
+        volumes:
+            - postgres:/var/lib/postgresql/data
+        ports:
+            - "54321:5432"
+
+volumes:
+    postgres:
+    nerds-bash-history:
