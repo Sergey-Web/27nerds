@@ -6,11 +6,10 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use Closure;
-use Illuminate\Http\JsonResponse;
 
 class ApiAuthentication
 {
-    public function handle($request, Closure $next): JsonResponse
+    public function handle($request, Closure $next)
     {
         $token = $request->bearerToken();
 

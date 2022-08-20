@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
+use DateTime;
+use GuzzleHttp\Client as HttpClient;
+use Predis\Client as RedisClient;
 
-class LeagueService
+final class LeagueService
 {
+    private const BASE_URI = 'https://www.dota2.com/';
+    private const URI = 'webapi/IDOTA2League/GetLeagueInfoList/v001';
+    private const STORAGE_PATH = '../storage/framework/dota2/';
+
     private array $data;
 
     public function __construct()
     {
-        $client = new Client(['base_uri' => 'https://www.dota2.com/']);
-        $data = $client->get('webapi/IDOTA2League/GetLeagueInfoList/v001')->getBody()->getContents();
-        $dataDecode = json_decode($data, true);
-
-        $this->data = !empty($dataDecode['infos']) ? $dataDecode['infos'] : [];
+        $this->data = $this->getContent();
     }
 
     public function getList(?int $startTimestamp): array
@@ -53,5 +55,29 @@ class LeagueService
         }
 
         return $leagues;
+    }
+
+    private function getContent(): array
+    {
+        $client = new HttpClient(['base_uri' => static::BASE_URI]);
+        $lastModified = $client
+            ->head(static::URI)
+            ->getHeader('Last-Modified')[0] ?? '';
+
+        $filePath = static::STORAGE_PATH . (new DateTime($lastModified))->getTimestamp();
+
+        if (is_file($filePath)) {
+            $data = file_get_contents($filePath);
+        } else {
+            $data = $client->get(static::URI)
+                ->getBody()
+                ->getContents();
+
+            file_put_contents($filePath, $data);
+        }
+
+        $dataDecode = json_decode($data, true);
+
+        return !empty($dataDecode['infos']) ? $dataDecode['infos'] : [];
     }
 }

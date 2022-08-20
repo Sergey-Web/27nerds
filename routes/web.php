@@ -20,4 +20,4 @@ $router->get('leagues', [
 $router->get('leagues/{leagueId}', [
     'middleware' => 'auth',
     'uses' => 'LeaguesController@show',
-);
+]);
